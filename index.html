@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini CRM - Gestion Vêtements Enfants (Mobile & PWA)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            500: '#d4836d',
+                            600: '#bf6b55',
+                            700: '#a3523d',
+                            cream: '#ffffff',
+                            roseSoft: '#fceaea',
+                            mintSoft: '#eaf4ee',
+                            peachSoft: '#fef3ec'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .btn-primary {
+            @apply px-5 py-3.5 bg-gradient-to-r from-pastel-600 to-pastel-700 hover:from-pastel-700 hover:to-pastel-800 text-white font-semibold rounded-2xl shadow-lg shadow-pastel-600/20 hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2.5 text-xs sm:text-sm cursor-pointer whitespace-nowrap active:scale-95;
+        }
+        .btn-secondary {
+            @apply px-5 py-3.5 bg-white hover:bg-pastel-50 text-slate-700 border border-pastel-200 font-semibold rounded-2xl shadow-xs transition-all duration-200 flex items-center justify-center space-x-2.5 text-xs sm:text-sm cursor-pointer whitespace-nowrap active:scale-95;
+        }
+        .modern-card {
+            @apply bg-white p-6 sm:p-8 rounded-[2rem] border border-pastel-200 shadow-xl shadow-stone-200/50 transition-all duration-300 hover:shadow-2xl hover:shadow-stone-300/60 backdrop-blur-md;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #ffffff; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4836d; }
+    </style>
+</head>
+<body class="h-full bg-white text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-x-hidden selection:bg-pastel-500 selection:text-white">
+
+    <!-- Mobile Top Navigation Bar -->
+    <header class="md:hidden bg-white/95 backdrop-blur-md border-b border-pastel-200 px-6 py-4 flex items-center justify-between z-30 sticky top-0 shadow-xs">
+        <div class="flex items-center space-x-3.5">
+            <div id="mobile-logo-container" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pastel-500 to-pastel-700 flex items-center text-white justify-center shadow-md shadow-pastel-500/30 overflow-hidden">
+                <i class="fa-solid fa-child-reaching text-base" id="mobile-logo-icon"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-slate-900 text-sm tracking-tight leading-none" id="brand-title-mobile">KidsWear CRM</h1>
+                <span class="text-[11px] text-pastel-600 font-medium mt-1 block">Mode Mobile</span>
+            </div>
+        </div>
+        <button onclick="toggleMobileSidebar()" class="w-11 h-11 rounded-2xl bg-white hover:bg-pastel-50 border border-pastel-200 flex items-center justify-center text-slate-700 transition cursor-pointer shadow-xs">
+            <i class="fa-solid fa-bars text-base"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar / Navigation Drawer -->
+    <aside id="sidebarDrawer" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:static w-72 md:w-72 bg-white backdrop-blur-xl border-r border-pastel-200 flex flex-col justify-between shadow-2xl md:shadow-none z-40 transition-transform duration-300 ease-in-out">
+        <div>
+            <div class="p-8 flex items-center justify-between border-b border-pastel-200">
+                <div class="flex items-center space-x-3.5">
+                    <div id="desktop-logo-container" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pastel-500 to-pastel-700 flex items-center text-white justify-center shadow-lg shadow-pastel-500/30 overflow-hidden">
+                        <i class="fa-solid fa-child-reaching text-lg" id="desktop-logo-icon"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-black text-slate-900 tracking-tight leading-none text-base" id="brand-title-desktop">KidsWear CRM</h1>
+                        <span class="text-[11px] text-pastel-600 font-semibold mt-1.5 block">Cloud Partagé GitHub</span>
+                    </div>
+                </div>
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <nav class="p-6 space-y-3 overflow-y-auto max-h-[calc(100vh-230px)]">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl bg-gradient-to-r from-pastel-600 to-pastel-700 text-white font-semibold transition-all shadow-lg shadow-pastel-600/20 text-left cursor-pointer">
+                    <i class="fa-solid fa-chart-pie w-5 text-base"></i>
+                    <span class="text-sm">Tableau de Bord</span>
+                </button>
+                <button onclick="switchTab('wallet')" id="nav-wallet" class="w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl text-slate-600 hover:bg-pastel-50 hover:text-pastel-700 font-medium transition-all text-left cursor-pointer">
+                    <i class="fa-solid fa-wallet w-5 text-base"></i>
+                    <span class="text-sm">Wallet & Trésorerie</span>
+                </button>
+                <button onclick="switchTab('clients')" id="nav-clients" class="w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl text-slate-600 hover:bg-pastel-50 hover:text-pastel-700 font-medium transition-all text-left cursor-pointer">
+                    <i class="fa-solid fa-users w-5 text-base"></i>
+                    <span class="text-sm">Clients & Familles</span>
+                </button>
+                <button onclick="switchTab('orders')" id="nav-orders" class="w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl text-slate-600 hover:bg-pastel-50 hover:text-pastel-700 font-medium transition-all text-left cursor-pointer">
+                    <i class="fa-solid fa-bag-shopping w-5 text-base"></i>
+                    <span class="text-sm">Commandes</span>
+                </button>
+                <button onclick="switchTab('stock')" id="nav-stock" class="w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl text-slate-600 hover:bg-pastel-50 hover:text-pastel-700 font-medium transition-all text-left cursor-pointer">
+                    <i class="fa-solid fa-boxes-stacked w-5 text-base"></i>
+                    <span class="text-sm">Stock & Produits</span>
+                </button>
+                <div class="pt-6 pb-4"><div class="border-t border-pastel-200"></div></div>
+                <button onclick="openLogoModal()" class="w-full flex items-center space-x-3.5 px-5 py-3.5 rounded-2xl text-slate-600 hover:bg-pastel-50 font-medium transition-all text-left cursor-pointer">
+                    <i class="fa-solid fa-image w-5 text-base text-slate-400"></i>
+                    <span class="text-sm">Personnaliser Logo</span>
+                </button>
+            </nav>
+        </div>
+        <div class="p-6 border-t border-pastel-200 bg-pastel-50/50">
+            <div class="bg-white p-4 rounded-2xl border border-pastel-200 flex items-center justify-between shadow-2xs">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-pastel-100 text-pastel-700 flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <div class="text-xs">
+                        <p class="font-bold text-slate-900">Cloud Sync</p>
+                        <p id="cloud-status-label" class="text-slate-400 text-[11px] mt-0.5">Temps Réel Actif</p>
+                    </div>
+                </div>
+                <button onclick="syncDataWithCloud()" class="w-9 h-9 rounded-xl bg-pastel-50 hover:bg-pastel-100 hover:text-pastel-700 text-slate-600 shadow-2xs flex items-center justify-center transition cursor-pointer" title="Synchroniser"><i class="fa-solid fa-rotate text-xs"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay backdrop for mobile menu -->
+    <div id="sidebarOverlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs z-30 hidden md:hidden"></div>
+
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
+        <!-- Top Sticky Header -->
+        <header class="hidden md:flex bg-white/95 backdrop-blur-xl border-b border-pastel-200 py-5 px-10 sticky top-0 z-10 items-center justify-between gap-6 shadow-2xs">
+            <div class="bg-pastel-50/80 border border-pastel-200 px-6 py-4 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pastel-500 to-pastel-700 text-white flex items-center justify-center shadow-md">
+                    <i id="header-icon-indicator" class="fa-solid fa-chart-pie text-base"></i>
+                </div>
+                <div>
+                    <h2 id="page-title" class="text-lg font-black text-slate-900 tracking-tight leading-none">Tableau de Bord & KPIs</h2>
+                    <p id="page-subtitle" class="text-[11px] text-slate-500 font-medium mt-1">Vue d'ensemble et indicateurs clés de performance consolidés</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="relative w-72">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="globalSearchInput" oninput="globalSearchTrigger(this.value)" placeholder="Recherche globale rapide..." class="w-full pl-11 pr-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white shadow-2xs transition">
+                </div>
+                <div id="header-actions" class="flex items-center space-x-2"></div>
+                <button onclick="openResetModal()" class="px-4 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-semibold rounded-2xl text-xs transition flex items-center space-x-2 cursor-pointer shadow-2xs" title="Réinitialiser les données">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                    <span class="hidden xl:inline">Réinitialiser</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile search and action header bar inside content -->
+        <div class="md:hidden p-5 bg-white/95 backdrop-blur-md border-b border-pastel-200 space-y-4 shadow-2xs">
+            <div class="bg-pastel-50/80 border border-pastel-200 p-4 rounded-[2rem] flex items-center space-x-3.5 shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-pastel-500 to-pastel-700 text-white flex items-center justify-center shadow-md">
+                    <i id="header-icon-indicator-mobile" class="fa-solid fa-chart-pie text-base"></i>
+                </div>
+                <div>
+                    <h2 id="page-title-mobile" class="text-base font-black text-slate-900 tracking-tight leading-none">Tableau de Bord & KPIs</h2>
+                    <p id="page-subtitle-mobile" class="text-[10px] text-slate-500 font-medium mt-1">Indicateurs clés consolidés</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="globalSearchInputMobile" oninput="globalSearchTrigger(this.value)" placeholder="Rechercher..." class="w-full pl-11 pr-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div id="header-actions-mobile" class="flex items-center space-x-2"></div>
+                <button onclick="openResetModal()" class="px-3.5 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-semibold rounded-2xl text-xs transition flex items-center justify-center cursor-pointer shadow-2xs" title="Réinitialiser">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="notification" class="hidden mx-5 sm:mx-10 mt-6 p-4 rounded-2xl bg-slate-900 text-white font-medium text-xs sm:text-sm items-center justify-between shadow-lg">
+            <span id="notif-text">Notification message</span>
+            <button onclick="hideNotif()" class="cursor-pointer hover:opacity-75 transition"><i class="fa-solid fa-xmark text-base"></i></button>
+        </div>
+
+        <!-- Hidden Excel File Inputs -->
+        <input type="file" id="excelClientInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="importClientsExcel(event)">
+        <input type="file" id="excelStockInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="importStockExcel(event)">
+
+        <!-- TAB: DASHBOARD CONTENT -->
+        <div id="tab-dashboard" class="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-coins text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 block">Investissement Total</span>
+                        <span id="kpi-investissement" class="text-xl font-black text-slate-900 mt-1 block">0 MAD</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">Apports investisseurs</span>
+                    </div>
+                </div>
+
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-pastel-100 text-pastel-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-chart-line text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-pastel-700 block">Chiffre d'Affaires</span>
+                        <span id="kpi-ca" class="text-xl font-black text-slate-900 mt-1 block">0 MAD</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">Ventes réalisées nettes</span>
+                    </div>
+                </div>
+
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-file-invoice-dollar text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-600 block">Charges & Frais</span>
+                        <span id="kpi-charges" class="text-xl font-black text-rose-600 mt-1 block">0 MAD</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">Imports, Pub, Transport...</span>
+                    </div>
+                </div>
+
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-scale-balanced text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 block">Bénéfice Net</span>
+                        <span id="kpi-benefice" class="text-xl font-black text-emerald-700 mt-1 block">0 MAD</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">CA - Total Charges</span>
+                    </div>
+                </div>
+
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-wallet text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-teal-700 block">Trésorerie Nette</span>
+                        <span id="kpi-wallet" class="text-xl font-black text-slate-900 mt-1 block">0 MAD</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">Solde global net</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-bag-shopping text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">Commandes</span>
+                        <p id="kpi-total-orders" class="text-xl font-black text-slate-900 mt-1">0</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Ventes enregistrées</span>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-truck-fast text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-teal-700 block">Taux Livraison</span>
+                        <p id="kpi-delivery-rate" class="text-xl font-black text-slate-900 mt-1">0%</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Colis livrés / Total</span>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-basket-shopping text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 block">Panier Moyen</span>
+                        <p id="kpi-avg-basket" class="text-xl font-black text-slate-900 mt-1">0 MAD</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Par commande</span>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-boxes-stacked text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 block">Articles Stock</span>
+                        <p id="kpi-stock-qty" class="text-xl font-black text-slate-900 mt-1">0 u.</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Quantité physique</span>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4 col-span-2 sm:col-span-1">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-tag text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 block">Valeur Stock</span>
+                        <p id="kpi-stock-val" class="text-xl font-black text-slate-900 mt-1">0 MAD</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Potentiel brut</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="modern-card lg:col-span-2 flex flex-col justify-between rounded-[2rem]">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">Évolution des Ventes vs Charges</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Comparatif dynamique (en MAD)</p>
+                        </div>
+                    </div>
+                    <div class="h-72 w-full relative">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="modern-card flex flex-col justify-between rounded-[2rem]">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base">Sources des Commandes</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Origine des ventes clients</p>
+                    </div>
+                    <div class="h-52 my-auto relative flex items-center justify-center">
+                        <canvas id="sourcesChart"></canvas>
+                    </div>
+                    <div id="sourcesLegend" class="grid grid-cols-2 gap-3 text-xs pt-5 border-t border-pastel-200">
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-pastel-600"></span><span class="text-slate-600 font-medium">Instagram</span></div>
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-indigo-500"></span><span class="text-slate-600 font-medium">Facebook</span></div>
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span><span class="text-slate-600 font-medium">WhatsApp</span></div>
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500"></span><span class="text-slate-600 font-medium">Client Direct</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: WALLET -->
+        <div id="tab-wallet" class="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto hidden">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-coins text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">Apports</span>
+                        <p id="wallet-total-invest" class="text-xl font-black text-slate-900 mt-1">0 MAD</p>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-arrow-up-from-bracket text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">Retraits</span>
+                        <p id="wallet-total-withdraw" class="text-xl font-black text-slate-900 mt-1">0 MAD</p>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-file-invoice-dollar text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 block">Charges</span>
+                        <p id="wallet-total-charges" class="text-xl font-black text-rose-600 mt-1">0 MAD</p>
+                    </div>
+                </div>
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4 col-span-2 sm:col-span-1">
+                    <div class="w-12 h-12 rounded-2xl bg-pastel-100 text-pastel-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-wallet text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-pastel-700 block">Trésorerie Nette</span>
+                        <p id="wallet-net-balance" class="text-xl font-black text-slate-900 mt-1">0 MAD</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modern-card p-6 flex flex-col sm:flex-row items-center gap-5 rounded-[2rem]">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="walletSearchFilter" oninput="filterWalletTable()" placeholder="Filtrer mouvements..." class="w-full pl-11 pr-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div class="w-full sm:w-64">
+                    <select id="walletCategoryFilter" onchange="filterWalletTable()" class="w-full px-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium text-slate-700">
+                        <option value="">-- Toutes Catégories --</option>
+                        <option value="Apport Investisseur">Apport Investisseur</option>
+                        <option value="Retrait Investisseur">Retrait Investisseur</option>
+                        <option value="Encaissement Vente">Encaissement Vente</option>
+                        <option value="Paiement Import">Paiement Import</option>
+                        <option value="Publicité">Publicité</option>
+                        <option value="Transport & Logistique">Transport & Logistique</option>
+                        <option value="Sachets & Emballages">Sachets & Emballages</option>
+                        <option value="Autre Charge">Autre Charge</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-pastel-200 shadow-xl shadow-stone-200/50 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-pastel-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-pastel-200">
+                            <tr>
+                                <th class="p-6">Date</th>
+                                <th class="p-6">Type</th>
+                                <th class="p-6">Catégorie</th>
+                                <th class="p-6">Bénéficiaire / Investisseur</th>
+                                <th class="p-6">Description</th>
+                                <th class="p-6">Montant (MAD)</th>
+                                <th class="p-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wallet-table-body" class="divide-y divide-pastel-200 font-medium text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: CLIENTS -->
+        <div id="tab-clients" class="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto hidden">
+            <div class="modern-card p-6 flex flex-col sm:flex-row items-center gap-5 rounded-[2rem]">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="clientSearchFilter" oninput="filterClientsTable()" placeholder="Filtrer clients..." class="w-full pl-11 pr-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-pastel-200 shadow-xl shadow-stone-200/50 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-pastel-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-pastel-200">
+                            <tr>
+                                <th class="p-6">Client</th>
+                                <th class="p-6">Téléphone</th>
+                                <th class="p-6">Adresse</th>
+                                <th class="p-6">Source</th>
+                                <th class="p-6">Enfants</th>
+                                <th class="p-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body" class="divide-y divide-pastel-200 font-medium text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ORDERS -->
+        <div id="tab-orders" class="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto hidden">
+            <div class="modern-card p-6 flex flex-col sm:flex-row items-center gap-5 rounded-[2rem]">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="orderSearchFilter" oninput="filterOrdersTable()" placeholder="Filtrer commandes..." class="w-full pl-11 pr-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div class="w-full sm:w-56">
+                    <select id="orderDeliveryFilter" onchange="filterOrdersTable()" class="w-full px-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium text-slate-700">
+                        <option value="">-- Livraison --</option>
+                        <option value="Oui">Livré: Oui</option>
+                        <option value="Non">Livré: Non</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-pastel-200 shadow-xl shadow-stone-200/50 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-pastel-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-pastel-200">
+                            <tr>
+                                <th class="p-6">N° / Date</th>
+                                <th class="p-6">Client & Tél</th>
+                                <th class="p-6">Vendeur</th>
+                                <th class="p-6">Produit & Détails</th>
+                                <th class="p-6">Prix & Remise</th>
+                                <th class="p-6">Expédition</th>
+                                <th class="p-6">Livraison</th>
+                                <th class="p-6">Paiement</th>
+                                <th class="p-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="divide-y divide-pastel-200 font-medium text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: STOCK -->
+        <div id="tab-stock" class="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto hidden">
+            <!-- Stock KPIs with filters by Ref Import & Product -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-boxes-stacked text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 block">Stock Restant (Qté)</span>
+                        <p id="kpi-filtered-stock-qty" class="text-xl font-black text-slate-900 mt-1">0 u.</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Articles selon filtres</span>
+                    </div>
+                </div>
+
+                <div class="bg-pastel-50/80 border border-pastel-200 p-6 rounded-[2rem] shadow-2xs flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-md shrink-0">
+                        <i class="fa-solid fa-tag text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 block">Valeur Stock Restant</span>
+                        <p id="kpi-filtered-stock-val" class="text-xl font-black text-slate-900 mt-1">0 MAD</p>
+                        <span class="text-[10px] text-slate-400 font-medium block">Valeur selon filtres</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-[2rem] border border-pastel-200 shadow-xl flex flex-col justify-center space-y-3">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Filtres Ciblés Stock</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="stockRefFilter" onchange="filterStockTable()" class="w-full px-3 py-2 text-xs rounded-xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium text-slate-700">
+                            <option value="">-- Réf Import --</option>
+                        </select>
+                        <select id="stockProdFilter" onchange="filterStockTable()" class="w-full px-3 py-2 text-xs rounded-xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium text-slate-700">
+                            <option value="">-- Produit --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modern-card p-6 flex flex-col sm:flex-row items-center gap-5 rounded-[2rem]">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="stockSearchFilter" oninput="filterStockTable()" placeholder="Recherche libre stock..." class="w-full pl-11 pr-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div class="w-full sm:w-56">
+                    <select id="stockGenderFilter" onchange="filterStockTable()" class="w-full px-4 py-3 text-xs rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium text-slate-700">
+                        <option value="">-- Genre --</option>
+                        <option value="Boys">Boys</option>
+                        <option value="Girls">Girls</option>
+                        <option value="Mixte">Mixte</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-pastel-200 shadow-xl shadow-stone-200/50 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-pastel-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-pastel-200">
+                            <tr>
+                                <th class="p-6">Réf. Import</th>
+                                <th class="p-6">Produit</th>
+                                <th class="p-6">Genre</th>
+                                <th class="p-6">Type</th>
+                                <th class="p-6">Taille</th>
+                                <th class="p-6">Couleur</th>
+                                <th class="p-6">Prix Vente (MAD)</th>
+                                <th class="p-6">Stock Restant</th>
+                                <th class="p-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stock-table-body" class="divide-y divide-pastel-200 font-medium text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Logo Customization -->
+    <div id="logoModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2rem] max-w-md w-full p-8 shadow-2xl space-y-6 border border-pastel-200">
+            <div class="flex items-center justify-between border-b border-pastel-200 pb-4">
+                <h3 class="font-black text-slate-900 text-base sm:text-lg flex items-center space-x-2.5">
+                    <i class="fa-solid fa-image text-pastel-600"></i>
+                    <span>Personnaliser le Logo & Nom</span>
+                </h3>
+                <button onclick="closeLogoModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4 text-xs text-slate-600">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Nom de la Marque / Boutique</label>
+                    <input type="text" id="brandTitleInput" placeholder="Ex: KidsWear CRM" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Lien URL de votre Logo (Image)</label>
+                    <input type="url" id="brandLogoUrlInput" placeholder="https://exemple.com/mon-logo.png" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    <span class="text-[11px] text-slate-400 block mt-1.5">Laissez vide pour utiliser l'icône par défaut.</span>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4 border-t border-pastel-200">
+                <button onclick="closeLogoModal()" class="btn-secondary">Annuler</button>
+                <button onclick="saveBrandLogo()" class="btn-primary">Enregistrer le Logo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Wallet -->
+    <div id="walletModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2rem] max-w-lg w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-pastel-200">
+            <div class="flex items-center justify-between border-b border-pastel-200 pb-4">
+                <h3 id="walletModalTitle" class="font-black text-slate-900 text-base sm:text-lg flex items-center space-x-2.5">
+                    <i class="fa-solid fa-wallet text-pastel-600"></i>
+                    <span>Mouvement Financier</span>
+                </h3>
+                <button onclick="closeWalletModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="walletForm" onsubmit="handleWalletSubmit(event)" class="space-y-5 text-xs">
+                <input type="hidden" id="editWalletId" value="">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Date *</label>
+                        <input type="date" id="walletDate" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Type *</label>
+                        <select id="walletType" required onchange="onWalletTypeChange()" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="Apport Investisseur">Apport Investisseur</option>
+                            <option value="Retrait Investisseur">Retrait Investisseur</option>
+                            <option value="Charge / Dépense">Charge / Dépense</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div id="walletCatContainer">
+                        <label class="block font-semibold text-slate-700 mb-1.5">Catégorie *</label>
+                        <select id="walletCategory" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="Paiement Import">Paiement Import</option>
+                            <option value="Publicité">Publicité</option>
+                            <option value="Transport & Logistique">Transport & Logistique</option>
+                            <option value="Sachets & Emballages">Sachets & Emballages</option>
+                            <option value="Autre Charge">Autre Charge</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="walletEntityLabel" class="block font-semibold text-slate-700 mb-1.5">Bénéficiaire *</label>
+                        <input type="text" id="walletEntity" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Description</label>
+                    <input type="text" id="walletDesc" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Montant (MAD) *</label>
+                    <input type="number" id="walletAmount" required step="0.01" min="0" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 font-black text-slate-900 bg-white">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-pastel-200">
+                    <button type="button" onclick="closeWalletModal()" class="btn-secondary">Annuler</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Commande -->
+    <div id="orderModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2rem] max-w-xl w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-pastel-200">
+            <div class="flex items-center justify-between border-b border-pastel-200 pb-4">
+                <h3 id="orderModalTitle" class="font-black text-slate-900 text-base sm:text-lg flex items-center space-x-2.5">
+                    <i class="fa-solid fa-bag-shopping text-pastel-600"></i>
+                    <span>Inscrire une Commande</span>
+                </h3>
+                <button onclick="closeOrderModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="orderForm" onsubmit="handleOrderSubmit(event)" class="space-y-5 text-xs">
+                <input type="hidden" id="editOrderId" value="">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Date *</label>
+                        <input type="date" id="orderDate" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Vendeur *</label>
+                        <select id="orderVendeur" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="Zakaria">Zakaria</option>
+                            <option value="Karim">Karim</option>
+                            <option value="Autres">Autres</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">N° Tél Client *</label>
+                        <input type="text" id="orderClientPhoneInput" list="clientPhonesList" required oninput="onOrderPhoneInput(this.value)" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                        <datalist id="clientPhonesList"></datalist>
+                        <span id="clientPhoneError" class="text-[11px] text-rose-500 font-semibold hidden mt-1.5">Ce numéro n'existe pas dans la base !</span>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Nom du Client</label>
+                        <input type="text" id="orderClientNameDisplay" readonly class="w-full px-4 py-3 rounded-2xl border border-pastel-200 bg-pastel-50 text-slate-600 font-bold outline-none">
+                    </div>
+                </div>
+
+                <div class="border-t border-pastel-200 pt-5 space-y-4 bg-gradient-to-br from-pastel-roseSoft/40 to-pastel-peachSoft/30 p-6 rounded-[2rem] border border-pastel-200">
+                    <p class="font-bold text-slate-900">Sélection Produit</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1.5">Réf. Import *</label>
+                            <select id="orderRefSelect" required onchange="onOrderRefChange()" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium shadow-2xs">
+                                <option value="">-- Choisir Réf --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1.5">Nom Produit *</label>
+                            <select id="orderProdNameSelect" required onchange="onOrderProdNameChange()" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium shadow-2xs">
+                                <option value="">-- Choisir Produit --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1.5">Taille *</label>
+                            <select id="orderSizeSelect" required onchange="onOrderSizeChange()" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium shadow-2xs">
+                                <option value="">-- Taille --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1.5">Couleur *</label>
+                            <select id="orderColorSelect" required onchange="onOrderColorChange()" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium shadow-2xs">
+                                <option value="">-- Couleur --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1.5">Stock Dispo</label>
+                            <input type="text" id="orderStockAvailable" readonly class="w-full px-4 py-3 rounded-2xl border border-pastel-200 bg-white text-emerald-600 font-extrabold outline-none shadow-2xs" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6 bg-pastel-50 rounded-[2rem] border border-pastel-200">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Prix Vente (MAD)</label>
+                        <input type="number" id="orderBasePrice" readonly class="w-full px-4 py-3 rounded-2xl border border-pastel-200 bg-white text-slate-700 font-bold outline-none" value="0">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Remise (MAD ou %)</label>
+                        <input type="text" id="orderDiscount" oninput="calculateFinalPrice()" placeholder="Ex: 20 ou 10%" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 bg-white text-slate-700 outline-none focus:border-pastel-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-900 mb-1.5">Net à Payer (MAD) *</label>
+                        <input type="number" id="orderPrice" step="0.01" required class="w-full px-4 py-3 rounded-2xl border border-pastel-300 bg-white text-slate-900 font-black outline-none" value="0">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Date d'Expédition</label>
+                        <input type="date" id="orderShipDate" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Livraison ?</label>
+                        <select id="orderDelivery" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="Oui">Oui (Livré)</option>
+                            <option value="Non">Non (En attente)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Argent Reçu ?</label>
+                        <select id="orderMoneyReceived" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="Oui">Oui (Reçu)</option>
+                            <option value="Non">Non (En attente)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t border-pastel-200">
+                    <button type="button" onclick="closeOrderModal()" class="btn-secondary">Annuler</button>
+                    <button type="submit" id="orderSubmitBtn" class="btn-primary">Enregistrer la commande</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Stock Article -->
+    <div id="stockItemModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2rem] max-w-lg w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-pastel-200">
+            <div class="flex items-center justify-between border-b border-pastel-200 pb-4">
+                <h3 id="stockModalTitle" class="font-black text-slate-900 text-base sm:text-lg flex items-center space-x-2.5">
+                    <i class="fa-solid fa-boxes-stacked text-pastel-600"></i>
+                    <span>Ajouter un Article au Stock</span>
+                </h3>
+                <button onclick="closeStockItemModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="stockItemForm" onsubmit="handleStockSubmit(event)" class="space-y-5 text-xs">
+                <input type="hidden" id="editStockId" value="">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Réf. Import *</label>
+                        <input type="text" id="stockRef" required placeholder="Ex: IMP-2026-01" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Nom Produit *</label>
+                        <input type="text" id="stockName" required placeholder="Ex: Pyjama Ourson" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Genre *</label>
+                        <select id="stockGender" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="Boys">Boys</option>
+                            <option value="Girls">Girls</option>
+                            <option value="Mixte">Mixte</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Type *</label>
+                        <input type="text" id="stockType" required placeholder="Ex: Pyjama" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Taille *</label>
+                        <input type="text" id="stockSize" required placeholder="Ex: 3-6 Mois" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Couleur *</label>
+                        <input type="text" id="stockColor" required placeholder="Ex: Bleu" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Prix Vente (MAD) *</label>
+                        <input type="number" id="stockPrice" required step="0.01" value="250.00" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 font-bold text-slate-900 bg-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Quantité Stock Reçu *</label>
+                    <input type="number" id="stockQty" required min="0" value="10" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 font-bold text-slate-900 bg-white">
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t border-pastel-200">
+                    <button type="button" onclick="closeStockItemModal()" class="btn-secondary">Annuler</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Client -->
+    <div id="clientModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2rem] max-w-lg w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-pastel-200">
+            <div class="flex items-center justify-between border-b border-pastel-200 pb-4">
+                <h3 id="clientModalTitle" class="font-black text-slate-900 text-base sm:text-lg flex items-center space-x-2.5">
+                    <i class="fa-solid fa-user-plus text-pastel-600"></i>
+                    <span>Ajouter un Client</span>
+                </h3>
+                <button onclick="closeClientModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="clientForm" onsubmit="handleClientSubmit(event)" class="space-y-5 text-xs">
+                <input type="hidden" id="editClientId" value="">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Nom Parent *</label>
+                    <input type="text" id="clientName" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Téléphone *</label>
+                        <input type="text" id="clientPhone" required class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Source *</label>
+                        <select id="clientSource" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white font-medium">
+                            <option value="WhatsApp">WhatsApp</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Client Direct">Client Direct</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1.5">Adresse</label>
+                    <input type="text" id="clientAddress" class="w-full px-4 py-3 rounded-2xl border border-pastel-200 outline-none focus:border-pastel-500 bg-white">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-pastel-200">
+                    <button type="button" onclick="closeClientModal()" class="btn-secondary">Annuler</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Reset / Confirmation de suppression totale -->
+    <div id="resetModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[2rem] max-w-md w-full p-8 shadow-2xl space-y-6 border border-rose-200">
+            <div class="flex items-center space-x-3.5 border-b border-rose-100 pb-4">
+                <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-lg shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-900 text-base sm:text-lg">Attention : Réinitialisation</h3>
+                    <p class="text-[11px] text-rose-600 font-medium">Action irréversible</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Êtes-vous sûr de vouloir supprimer <strong class="text-slate-900">toutes les données</strong> de l'application (Clients, Stock, Commandes, Trésorerie et Wallet) ? Cette action effacera l'intégralité de vos enregistrements.
+            </p>
+            <div class="flex justify-end space-x-3 pt-4 border-t border-pastel-200">
+                <button type="button" onclick="closeResetModal()" class="btn-secondary">Annuler</button>
+                <button type="button" onclick="executeFullReset()" class="px-5 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-2xl shadow-lg transition text-xs sm:text-sm cursor-pointer">Confirmer la suppression</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let appData = {
+            brandName: 'KidsWear CRM',
+            logoUrl: '',
+            clients: [],
+            orders: [],
+            stock: [],
+            wallet: []
+        };
+
+        let salesChartInstance = null;
+        let sourcesChartInstance = null;
+
+        function toggleMobileSidebar() {
+            const drawer = document.getElementById('sidebarDrawer');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (drawer && overlay) {
+                drawer.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('kids_crm_shared_data', JSON.stringify(appData));
+            syncDataWithCloud();
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('kids_crm_shared_data');
+            if (saved) {
+                try { appData = JSON.parse(saved); } catch(e) {}
+            }
+        }
+
+        function openResetModal() {
+            document.getElementById('resetModal').classList.remove('hidden');
+            document.getElementById('resetModal').classList.add('flex');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.remove('flex');
+            document.getElementById('resetModal').classList.add('hidden');
+        }
+
+        function executeFullReset() {
+            appData = {
+                brandName: 'KidsWear CRM',
+                logoUrl: '',
+                clients: [],
+                orders: [],
+                stock: [],
+                wallet: []
+            };
+            localStorage.removeItem('kids_crm_shared_data');
+            closeResetModal();
+            syncDataWithCloud();
+            showNotif("Toutes les données ont été réinitialisées avec succès.");
+        }
+
+        function syncDataWithCloud() {
+            loadFromStorage();
+            renderClients();
+            renderOrders();
+            renderStock();
+            renderWallet();
+            updateDashboardKPIs();
+            updateOrderDropdowns();
+            updateStockFilterDropdowns();
+            updateBrandingDisplay();
+            showNotif("Données synchronisées !");
+        }
+
+        function updateBrandingDisplay() {
+            const name = appData.brandName || 'KidsWear CRM';
+            const logo = appData.logoUrl || '';
+
+            document.getElementById('brand-title-desktop').innerText = name;
+            document.getElementById('brand-title-mobile').innerText = name;
+
+            const updateContainer = (containerId) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                if (logo) {
+                    container.innerHTML = `<img src="${logo}" alt="Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentNode.innerHTML='<i class=\'fa-solid fa-child-reaching text-sm\'></i>';">`;
+                } else {
+                    container.innerHTML = `<i class="fa-solid fa-child-reaching text-sm text-white"></i>`;
+                }
+            };
+            updateContainer('desktop-logo-container');
+            updateContainer('mobile-logo-container');
+        }
+
+        function openLogoModal() {
+            document.getElementById('brandTitleInput').value = appData.brandName || 'KidsWear CRM';
+            document.getElementById('brandLogoUrlInput').value = appData.logoUrl || '';
+            document.getElementById('logoModal').classList.remove('hidden');
+            document.getElementById('logoModal').classList.add('flex');
+        }
+        function closeLogoModal() {
+            document.getElementById('logoModal').classList.remove('flex');
+            document.getElementById('logoModal').classList.add('hidden');
+        }
+        function saveBrandLogo() {
+            const name = document.getElementById('brandTitleInput').value.trim();
+            const url = document.getElementById('brandLogoUrlInput').value.trim();
+            if (name) appData.brandName = name;
+            appData.logoUrl = url;
+            saveToStorage();
+            closeLogoModal();
+            showNotif("Logo et nom mis à jour !");
+        }
+
+        function showNotif(msg) {
+            const notif = document.getElementById('notification');
+            const notifText = document.getElementById('notif-text');
+            if (notif && notifText) {
+                notifText.innerText = msg;
+                notif.classList.remove('hidden');
+                notif.classList.add('flex');
+                setTimeout(() => hideNotif(), 4000);
+            }
+        }
+        function hideNotif() {
+            const notif = document.getElementById('notification');
+            if (notif) { notif.classList.remove('flex'); notif.classList.add('hidden'); }
+        }
+
+        function switchTab(tabId) {
+            const drawer = document.getElementById('sidebarDrawer');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (drawer && !drawer.classList.contains('-translate-x-full')) {
+                drawer.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+
+            ['dashboard', 'wallet', 'clients', 'orders', 'stock'].forEach(t => {
+                document.getElementById('tab-' + t)?.classList.add('hidden');
+                const nav = document.getElementById('nav-' + t);
+                if (nav) nav.className = "w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl text-slate-600 hover:bg-pastel-50 hover:text-pastel-700 font-medium transition-all text-left cursor-pointer";
+            });
+            document.getElementById('tab-' + tabId)?.classList.remove('hidden');
+            const targetNav = document.getElementById('nav-' + tabId);
+            if (targetNav) targetNav.className = "w-full flex items-center space-x-3.5 px-5 py-4 rounded-2xl bg-gradient-to-r from-pastel-600 to-pastel-700 text-white font-semibold transition-all shadow-lg shadow-pastel-600/20 text-left cursor-pointer";
+
+            const titleMap = {
+                dashboard: ["Tableau de Bord & KPIs", "Indicateurs clés de performance consolidés", "fa-chart-pie"],
+                wallet: ["Wallet & Trésorerie Actifs", "Gestion des apports, retraits, charges et encaissements", "fa-wallet"],
+                clients: ["Annuaire des Clients", "Gestion des parents et familles", "fa-users"],
+                orders: ["Gestion des Commandes", "Suivi des ventes et livraisons", "fa-bag-shopping"],
+                stock: ["Gestion du Stock & Prix", "Articles, KPIs filtrés et tarifs", "fa-boxes-stacked"]
+            };
+            if (titleMap[tabId]) {
+                document.getElementById('page-title').innerText = titleMap[tabId][0];
+                document.getElementById('page-subtitle').innerText = titleMap[tabId][1];
+                document.getElementById('page-title-mobile').innerText = titleMap[tabId][0];
+                document.getElementById('page-subtitle-mobile').innerText = titleMap[tabId][1];
+                
+                const iconClass = "fa-solid " + titleMap[tabId][2] + " text-base";
+                document.getElementById('header-icon-indicator').className = iconClass;
+                document.getElementById('header-icon-indicator-mobile').className = iconClass;
+            }
+            const headerActions = document.getElementById('header-actions');
+            const headerActionsMobile = document.getElementById('header-actions-mobile');
+            
+            let actionHtml = '';
+            if (tabId === 'stock') {
+                actionHtml = `
+                    <button onclick="downloadStockTemplate()" class="btn-secondary py-2.5 px-3" title="Télécharger le modèle Excel"><i class="fa-solid fa-download text-pastel-600"></i><span class="hidden lg:inline ml-1.5">Canevas</span></button>
+                    <button onclick="document.getElementById('excelStockInput').click()" class="btn-secondary py-2.5 px-4"><i class="fa-solid fa-file-excel text-emerald-600"></i><span class="hidden sm:inline ml-1.5">Importer Excel</span></button>
+                    <button onclick="openStockItemModal()" class="btn-primary py-2.5 px-4"><i class="fa-solid fa-plus"></i><span class="hidden sm:inline ml-1.5">Article</span></button>
+                `;
+            } else if (tabId === 'clients') {
+                actionHtml = `
+                    <button onclick="downloadClientTemplate()" class="btn-secondary py-2.5 px-3" title="Télécharger le modèle Excel"><i class="fa-solid fa-download text-pastel-600"></i><span class="hidden lg:inline ml-1.5">Canevas</span></button>
+                    <button onclick="document.getElementById('excelClientInput').click()" class="btn-secondary py-2.5 px-4"><i class="fa-solid fa-file-excel text-emerald-600"></i><span class="hidden sm:inline ml-1.5">Importer Excel</span></button>
+                    <button onclick="openClientModal()" class="btn-primary py-2.5 px-4"><i class="fa-solid fa-user-plus"></i><span class="hidden sm:inline ml-1.5">Client</span></button>
+                `;
+            } else if (tabId === 'orders') {
+                actionHtml = `<button onclick="openOrderModal()" class="btn-primary py-2.5 px-4"><i class="fa-solid fa-bag-shopping"></i><span class="hidden sm:inline ml-1.5">Commande</span></button>`;
+            } else if (tabId === 'wallet') {
+                actionHtml = `<button onclick="openWalletModal('Apport Investisseur')" class="btn-primary py-2.5 px-4"><i class="fa-solid fa-plus"></i><span class="hidden sm:inline ml-1.5">Mouvement</span></button>`;
+            }
+
+            if (headerActions) headerActions.innerHTML = actionHtml;
+            if (headerActionsMobile) headerActionsMobile.innerHTML = actionHtml;
+        }
+
+        function globalSearchTrigger(val) {
+            const query = val.toLowerCase();
+            const currentTab = document.querySelectorAll('main > div:not(.hidden)')[0]?.id;
+            if (currentTab === 'tab-clients') { document.getElementById('clientSearchFilter').value = query; filterClientsTable(); }
+            else if (currentTab === 'tab-orders') { document.getElementById('orderSearchFilter').value = query; filterOrdersTable(); }
+            else if (currentTab === 'tab-stock') { document.getElementById('stockSearchFilter').value = query; filterStockTable(); }
+            else if (currentTab === 'tab-wallet') { document.getElementById('walletSearchFilter').value = query; filterWalletTable(); }
+        }
+
+        // --- EXCEL / CSV TEMPLATES & CUMULATIVE IMPORTS ---
+        function downloadClientTemplate() {
+            const csvContent = "Nom Parent;Telephone;Adresse;Source;Enfants\nSophie Martin;+212612345678;Casablanca;WhatsApp;Lucas (3 ans)\nKarim Benjelloun;+212698765432;Rabat;Instagram;Lina (5 ans)";
+            const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'canevas_clients.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotif("Canevas clients téléchargé avec succès !");
+        }
+
+        function downloadStockTemplate() {
+            const csvContent = "Ref Import;Nom Produit;Genre;Type;Taille;Couleur;Prix Vente;Quantite Stock\nIMP-2026-01;Pyjama Velours;Boys;Pyjama;3-6 Mois;Bleu;250;15\nIMP-2026-02;Robe Ceremonie;Girls;Robe;4 Ans;Rose;320;20";
+            const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'canevas_stock.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotif("Canevas stock téléchargé avec succès !");
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let cur = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if ((char === ';' || char === ',') && !inQuotes) {
+                    result.push(cur.trim().replace(/^["']|["']$/g, ''));
+                    cur = '';
+                } else {
+                    cur += char;
+                }
+            }
+            result.push(cur.trim().replace(/^["']|["']$/g, ''));
+            return result;
+        }
+
+        function importClientsExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/);
+                let count = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cols = parseCSVLine(line);
+                    if (cols.length >= 2 && cols[0]) {
+                        appData.clients.push({
+                            id: Math.random().toString(36).substring(2,9),
+                            name: cols[0] || 'Client Inconnu',
+                            phone: cols[1] || '+212600000000',
+                            address: cols[2] || '-',
+                            source: cols[3] || 'WhatsApp',
+                            children: cols[4] || '-'
+                        });
+                        count++;
+                    }
+                }
+                saveToStorage();
+                showNotif(`${count} client(s) ajouté(s) cumulativement avec succès !`);
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function importStockExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/);
+                let count = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cols = parseCSVLine(line);
+                    if (cols.length >= 2 && cols[0]) {
+                        appData.stock.push({
+                            id: 'stk-' + Math.random().toString(36).substring(2,9),
+                            ref: cols[0] || 'IMP-2026-X',
+                            name: cols[1] || 'Produit',
+                            gender: cols[2] || 'Boys',
+                            type: cols[3] || 'Vêtement',
+                            size: cols[4] || 'Unique',
+                            color: cols[5] || 'Multicolore',
+                            price: parseFloat(cols[6]) || 250,
+                            qty: parseInt(cols[7]) || 10
+                        });
+                        count++;
+                    }
+                }
+                saveToStorage();
+                showNotif(`${count} article(s) de stock ajouté(s) cumulativement !`);
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function updateDashboardKPIs() {
+            let totalInvest = 0, totalWithdraw = 0, totalCharges = 0, totalEncaiss = 0, totalCA = 0;
+            appData.wallet.forEach(w => {
+                const amt = parseFloat(w.amount || 0);
+                if (w.type === 'Apport Investisseur') totalInvest += amt;
+                else if (w.type === 'Retrait Investisseur') totalWithdraw += amt;
+                else if (w.type === 'Charge / Dépense') totalCharges += amt;
+                else if (w.type === 'Encaissement Vente') totalEncaiss += amt;
+            });
+            appData.orders.forEach(o => totalCA += parseFloat(o.price || 0));
+            const netWallet = totalInvest + totalEncaiss - totalWithdraw - totalCharges;
+            const beneficeNet = totalCA - totalCharges;
+
+            const totalOrdersCount = appData.orders.length;
+            let deliveredCount = 0;
+            appData.orders.forEach(o => { if (o.delivery === 'Oui') deliveredCount++; });
+            const deliveryRate = totalOrdersCount > 0 ? Math.round((deliveredCount / totalOrdersCount) * 100) : 0;
+            const avgBasket = totalOrdersCount > 0 ? Math.round(totalCA / totalOrdersCount) : 0;
+
+            let totalStockQty = 0;
+            let totalStockVal = 0;
+            appData.stock.forEach(s => {
+                const q = parseInt(s.qty || 0);
+                const p = parseFloat(s.price || 0);
+                totalStockQty += q;
+                totalStockVal += (q * p);
+            });
+
+            if (document.getElementById('kpi-investissement')) document.getElementById('kpi-investissement').innerText = totalInvest.toLocaleString() + ' MAD';
+            if (document.getElementById('kpi-ca')) document.getElementById('kpi-ca').innerText = totalCA.toLocaleString() + ' MAD';
+            if (document.getElementById('kpi-charges')) document.getElementById('kpi-charges').innerText = totalCharges.toLocaleString() + ' MAD';
+            if (document.getElementById('kpi-benefice')) document.getElementById('kpi-benefice').innerText = beneficeNet.toLocaleString() + ' MAD';
+            if (document.getElementById('kpi-wallet')) document.getElementById('kpi-wallet').innerText = netWallet.toLocaleString() + ' MAD';
+            if (document.getElementById('kpi-total-orders')) document.getElementById('kpi-total-orders').innerText = totalOrdersCount;
+            if (document.getElementById('kpi-delivery-rate')) document.getElementById('kpi-delivery-rate').innerText = deliveryRate + '%';
+            if (document.getElementById('kpi-avg-basket')) document.getElementById('kpi-avg-basket').innerText = avgBasket.toLocaleString() + ' MAD';
+            if (document.getElementById('kpi-stock-qty')) document.getElementById('kpi-stock-qty').innerText = totalStockQty.toLocaleString() + ' u.';
+            if (document.getElementById('kpi-stock-val')) document.getElementById('kpi-stock-val').innerText = totalStockVal.toLocaleString() + ' MAD';
+
+            updateChartsData();
+        }
+
+        function updateChartsData() {
+            let sourceCounts = { 'Instagram': 0, 'Facebook': 0, 'WhatsApp': 0, 'Client Direct': 0 };
+            appData.orders.forEach(o => {
+                const client = appData.clients.find(c => c.phone === o.clientPhone);
+                const src = client ? client.source : 'Instagram';
+                if (sourceCounts[src] !== undefined) sourceCounts[src]++;
+                else sourceCounts['Instagram']++;
+            });
+
+            const sourceValues = [
+                sourceCounts['Instagram'],
+                sourceCounts['Facebook'],
+                sourceCounts['WhatsApp'],
+                sourceCounts['Client Direct']
+            ];
+
+            if (sourcesChartInstance) {
+                sourcesChartInstance.data.datasets[0].data = sourceValues;
+                sourcesChartInstance.update();
+            }
+
+            let monthlyCA = new Array(12).fill(0);
+            let monthlyCharges = new Array(12).fill(0);
+
+            appData.orders.forEach(o => {
+                if (o.date) {
+                    const parts = o.date.split('/');
+                    if (parts.length === 3) {
+                        const m = parseInt(parts[1]) - 1;
+                        if (m >= 0 && m < 12) monthlyCA[m] += parseFloat(o.price || 0);
+                    }
+                }
+            });
+
+            appData.wallet.forEach(w => {
+                if (w.type === 'Charge / Dépense' && w.date) {
+                    const parts = w.date.split('/');
+                    if (parts.length === 3) {
+                        const m = parseInt(parts[1]) - 1;
+                        if (m >= 0 && m < 12) monthlyCharges[m] += parseFloat(w.amount || 0);
+                    }
+                }
+            });
+
+            if (salesChartInstance) {
+                salesChartInstance.data.datasets[0].data = monthlyCA;
+                salesChartInstance.data.datasets[1].data = monthlyCharges;
+                salesChartInstance.update();
+            }
+        }
+
+        // --- WALLET ---
+        function renderWallet() {
+            const tbody = document.getElementById('wallet-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            let totalInvest = 0, totalWithdraw = 0, totalCharges = 0, totalEncaiss = 0;
+
+            appData.wallet.forEach(w => {
+                const amt = parseFloat(w.amount || 0);
+                if (w.type === 'Apport Investisseur') totalInvest += amt;
+                else if (w.type === 'Retrait Investisseur') totalWithdraw += amt;
+                else if (w.type === 'Charge / Dépense') totalCharges += amt;
+                else if (w.type === 'Encaissement Vente') totalEncaiss += amt;
+
+                let badgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+                let sign = "+";
+                if (w.type === 'Retrait Investisseur') { badgeClass = "bg-indigo-50 text-indigo-700 border border-indigo-200"; sign = "-"; }
+                else if (w.type === 'Charge / Dépense') { badgeClass = "bg-rose-50 text-rose-700 border border-rose-200"; sign = "-"; }
+                else if (w.type === 'Encaissement Vente') { badgeClass = "bg-amber-50 text-amber-800 border border-amber-200"; sign = "+"; }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-pastel-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-6 text-slate-500">${w.date}</td>
+                    <td class="p-6"><span class="px-4 py-1.5 rounded-full text-[11px] font-bold ${badgeClass}">${w.type}</span></td>
+                    <td class="p-6 font-bold text-slate-900 wallet-cat">${w.category}</td>
+                    <td class="p-6 text-slate-700">${w.entity}</td>
+                    <td class="p-6 text-slate-500">${w.desc || '-'}</td>
+                    <td class="p-6 font-bold ${sign === '+' ? 'text-emerald-600' : 'text-rose-600'}">${sign} ${amt.toLocaleString()} MAD</td>
+                    <td class="p-6 text-right space-x-1.5">
+                        ${w.isAutoOrder ? '<span class="text-[11px] text-slate-400 italic">Auto-Vente</span>' : `
+                        <button onclick="editWalletById('${w.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <button onclick="deleteWalletById('${w.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-trash text-xs"></i></button>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            const netWallet = totalInvest + totalEncaiss - totalWithdraw - totalCharges;
+            if (document.getElementById('wallet-total-invest')) document.getElementById('wallet-total-invest').innerText = totalInvest.toLocaleString() + ' MAD';
+            if (document.getElementById('wallet-total-withdraw')) document.getElementById('wallet-total-withdraw').innerText = totalWithdraw.toLocaleString() + ' MAD';
+            if (document.getElementById('wallet-total-charges')) document.getElementById('wallet-total-charges').innerText = totalCharges.toLocaleString() + ' MAD';
+            if (document.getElementById('wallet-net-balance')) document.getElementById('wallet-net-balance').innerText = netWallet.toLocaleString() + ' MAD';
+        }
+
+        function filterWalletTable() {
+            const query = document.getElementById('walletSearchFilter').value.toLowerCase();
+            const catFilter = document.getElementById('walletCategoryFilter').value;
+            document.querySelectorAll('#wallet-table-body tr').forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const catText = row.querySelector('.wallet-cat')?.innerText || '';
+                row.style.display = (text.includes(query) && (!catFilter || catText.includes(catFilter))) ? '' : 'none';
+            });
+        }
+
+        function openWalletModal(type = 'Charge / Dépense') {
+            document.getElementById('editWalletId').value = '';
+            document.getElementById('walletForm').reset();
+            document.getElementById('walletDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('walletType').value = type;
+            onWalletTypeChange();
+            document.getElementById('walletModal').classList.remove('hidden');
+            document.getElementById('walletModal').classList.add('flex');
+        }
+        function closeWalletModal() {
+            document.getElementById('walletModal').classList.remove('flex');
+            document.getElementById('walletModal').classList.add('hidden');
+        }
+        function onWalletTypeChange() {
+            const type = document.getElementById('walletType').value;
+            document.getElementById('walletCatContainer').style.display = (type === 'Charge / Dépense') ? 'block' : 'none';
+        }
+        function handleWalletSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editWalletId').value;
+            const dateVal = document.getElementById('walletDate').value;
+            const parts = dateVal.split('-');
+            const date = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateVal;
+            const type = document.getElementById('walletType').value;
+            const category = type === 'Charge / Dépense' ? document.getElementById('walletCategory').value : type;
+            const entity = document.getElementById('walletEntity').value;
+            const desc = document.getElementById('walletDesc').value;
+            const amount = parseFloat(document.getElementById('walletAmount').value || '0');
+
+            if (!editId) {
+                appData.wallet.unshift({ id: 'w-' + Math.random().toString(36).substring(2,9), date, type, category, entity, desc, amount });
+                showNotif("Mouvement ajouté !");
+            } else {
+                const idx = appData.wallet.findIndex(w => w.id === editId);
+                if (idx !== -1) appData.wallet[idx] = { ...appData.wallet[idx], date, type, category, entity, desc, amount };
+                showNotif("Mouvement mis à jour !");
+            }
+            saveToStorage();
+            closeWalletModal();
+        }
+        function editWalletById(id) {
+            const w = appData.wallet.find(x => x.id === id);
+            if (!w) return;
+            document.getElementById('editWalletId').value = w.id;
+            let d = new Date().toISOString().split('T')[0];
+            if (w.date.includes('/')) { const p = w.date.split('/'); if (p.length === 3) d = `${p[2]}-${p[1]}-${p[0]}`; }
+            document.getElementById('walletDate').value = d;
+            document.getElementById('walletType').value = w.type;
+            onWalletTypeChange();
+            if (w.type === 'Charge / Dépense') document.getElementById('walletCategory').value = w.category;
+            document.getElementById('walletEntity').value = w.entity;
+            document.getElementById('walletDesc').value = w.desc;
+            document.getElementById('walletAmount').value = w.amount;
+            document.getElementById('walletModal').classList.remove('hidden');
+            document.getElementById('walletModal').classList.add('flex');
+        }
+        function deleteWalletById(id) {
+            if (confirm("Supprimer ce mouvement ?")) {
+                appData.wallet = appData.wallet.filter(x => x.id !== id);
+                saveToStorage();
+                showNotif("Supprimé.");
+            }
+        }
+
+        // --- CLIENTS ---
+        function renderClients() {
+            const tbody = document.getElementById('clients-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            appData.clients.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-pastel-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-6 font-bold text-slate-900">${c.name}</td>
+                    <td class="p-6 text-slate-600">${c.phone}</td>
+                    <td class="p-6 text-slate-500">${c.address || '-'}</td>
+                    <td class="p-6"><span class="px-4 py-1.5 rounded-full text-[11px] font-bold bg-pastel-50 text-pastel-700 border border-pastel-200">${c.source}</span></td>
+                    <td class="p-6 text-slate-600">${c.children || '-'}</td>
+                    <td class="p-6 text-right">
+                        <button onclick="editClientById('${c.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-pen text-xs"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        function filterClientsTable() {
+            const q = document.getElementById('clientSearchFilter').value.toLowerCase();
+            document.querySelectorAll('#clients-table-body tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
+        }
+        function openClientModal() {
+            document.getElementById('editClientId').value = '';
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientModal').classList.remove('hidden');
+            document.getElementById('clientModal').classList.add('flex');
+        }
+        function closeClientModal() {
+            document.getElementById('clientModal').classList.remove('flex');
+            document.getElementById('clientModal').classList.add('hidden');
+        }
+        function handleClientSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editClientId').value;
+            const name = document.getElementById('clientName').value;
+            const phone = document.getElementById('clientPhone').value;
+            const source = document.getElementById('clientSource').value;
+            const address = document.getElementById('clientAddress').value || '-';
+            if (!editId) {
+                appData.clients.unshift({ id: Math.random().toString(36).substring(2,9), name, phone, address, source, children: '-' });
+                showNotif("Client ajouté !");
+            } else {
+                const idx = appData.clients.findIndex(c => c.id === editId);
+                if (idx !== -1) appData.clients[idx] = { ...appData.clients[idx], name, phone, address, source };
+                showNotif("Client mis à jour !");
+            }
+            saveToStorage();
+            closeClientModal();
+        }
+        function editClientById(id) {
+            const c = appData.clients.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('editClientId').value = c.id;
+            document.getElementById('clientName').value = c.name;
+            document.getElementById('clientPhone').value = c.phone;
+            document.getElementById('clientSource').value = c.source;
+            document.getElementById('clientAddress').value = c.address;
+            document.getElementById('clientModal').classList.remove('hidden');
+            document.getElementById('clientModal').classList.add('flex');
+        }
+
+        // --- STOCK ---
+        function updateStockFilterDropdowns() {
+            const refSel = document.getElementById('stockRefFilter');
+            const prodSel = document.getElementById('stockProdFilter');
+            if (!refSel || !prodSel) return;
+
+            const curRef = refSel.value;
+            const curProd = prodSel.value;
+
+            refSel.innerHTML = '<option value="">-- Réf Import --</option>';
+            prodSel.innerHTML = '<option value="">-- Produit --</option>';
+
+            const refs = new Set();
+            const prods = new Set();
+
+            appData.stock.forEach(s => {
+                if (s.ref) refs.add(s.ref);
+                if (s.name) prods.add(s.name);
+            });
+
+            refs.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; refSel.appendChild(o); });
+            prods.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; prodSel.appendChild(o); });
+
+            refSel.value = curRef;
+            prodSel.value = curProd;
+        }
+
+        function renderStock() {
+            const tbody = document.getElementById('stock-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            updateStockFilterDropdowns();
+
+            appData.stock.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-pastel-50 transition-colors";
+                tr.dataset.ref = s.ref || '';
+                tr.dataset.name = s.name || '';
+                tr.dataset.gender = s.gender || '';
+                tr.innerHTML = `
+                    <td class="p-6 font-bold text-slate-900 stock-ref">${s.ref}</td>
+                    <td class="p-6 font-bold text-slate-800 stock-name">${s.name}</td>
+                    <td class="p-6 stock-gender">${s.gender}</td>
+                    <td class="p-6 text-slate-600">${s.type}</td>
+                    <td class="p-6 text-slate-600">${s.size}</td>
+                    <td class="p-6 text-slate-600">${s.color}</td>
+                    <td class="p-6 font-bold text-slate-900 stock-price" data-price="${s.price}">${s.price} MAD</td>
+                    <td class="p-6 font-bold ${s.qty > 0 ? 'text-emerald-600' : 'text-rose-600'} stock-qty" data-qty="${s.qty}">${s.qty}</td>
+                    <td class="p-6 text-right space-x-1.5">
+                        <button onclick="editStockById('${s.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <button onclick="deleteStockById('${s.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            filterStockTable();
+        }
+
+        function filterStockTable() {
+            const q = document.getElementById('stockSearchFilter')?.value.toLowerCase() || '';
+            const g = document.getElementById('stockGenderFilter')?.value || '';
+            const refF = document.getElementById('stockRefFilter')?.value || '';
+            const prodF = document.getElementById('stockProdFilter')?.value || '';
+
+            let filteredQty = 0;
+            let filteredVal = 0;
+
+            document.querySelectorAll('#stock-table-body tr').forEach(r => {
+                const text = r.innerText.toLowerCase();
+                const refVal = r.dataset.ref || '';
+                const nameVal = r.dataset.name || '';
+                const genderVal = r.dataset.gender || '';
+
+                const matchesSearch = text.includes(q);
+                const matchesGender = !g || genderVal === g;
+                const matchesRef = !refF || refVal === refF;
+                const matchesProd = !prodF || nameVal === prodF;
+
+                if (matchesSearch && matchesGender && matchesRef && matchesProd) {
+                    r.style.display = '';
+                    const qElem = r.querySelector('.stock-qty');
+                    const pElem = r.querySelector('.stock-price');
+                    if (qElem && pElem) {
+                        const qty = parseInt(qElem.dataset.qty || '0');
+                        const price = parseFloat(pElem.dataset.price || '0');
+                        filteredQty += qty;
+                        filteredVal += (qty * price);
+                    }
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            if (document.getElementById('kpi-filtered-stock-qty')) {
+                document.getElementById('kpi-filtered-stock-qty').innerText = filteredQty.toLocaleString() + ' u.';
+            }
+            if (document.getElementById('kpi-filtered-stock-val')) {
+                document.getElementById('kpi-filtered-stock-val').innerText = filteredVal.toLocaleString() + ' MAD';
+            }
+        }
+
+        function openStockItemModal() {
+            document.getElementById('editStockId').value = '';
+            document.getElementById('stockItemForm').reset();
+            document.getElementById('stockItemModal').classList.remove('hidden');
+            document.getElementById('stockItemModal').classList.add('flex');
+        }
+        function closeStockItemModal() {
+            document.getElementById('stockItemModal').classList.remove('flex');
+            document.getElementById('stockItemModal').classList.add('hidden');
+        }
+        function handleStockSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editStockId').value;
+            const ref = document.getElementById('stockRef').value;
+            const name = document.getElementById('stockName').value;
+            const gender = document.getElementById('stockGender').value;
+            const type = document.getElementById('stockType').value;
+            const size = document.getElementById('stockSize').value;
+            const color = document.getElementById('stockColor').value;
+            const price = parseFloat(document.getElementById('stockPrice').value || '0');
+            const qty = parseInt(document.getElementById('stockQty').value || '0');
+
+            if (!editId) {
+                appData.stock.unshift({ id: 'stk-' + Math.random().toString(36).substring(2,9), ref, name, gender, type, size, color, price, qty });
+                showNotif("Article stock ajouté !");
+            } else {
+                const idx = appData.stock.findIndex(s => s.id === editId);
+                if (idx !== -1) appData.stock[idx] = { ...appData.stock[idx], ref, name, gender, type, size, color, price, qty };
+                showNotif("Stock mis à jour !");
+            }
+            saveToStorage();
+            closeStockItemModal();
+        }
+        function editStockById(id) {
+            const s = appData.stock.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('editStockId').value = s.id;
+            document.getElementById('stockRef').value = s.ref;
+            document.getElementById('stockName').value = s.name;
+            document.getElementById('stockGender').value = s.gender;
+            document.getElementById('stockType').value = s.type;
+            document.getElementById('stockSize').value = s.size;
+            document.getElementById('stockColor').value = s.color;
+            document.getElementById('stockPrice').value = s.price;
+            document.getElementById('stockQty').value = s.qty;
+            document.getElementById('stockItemModal').classList.remove('hidden');
+            document.getElementById('stockItemModal').classList.add('flex');
+        }
+        function deleteStockById(id) {
+            if (confirm("Supprimer cet article ?")) {
+                appData.stock = appData.stock.filter(x => x.id !== id);
+                saveToStorage();
+                showNotif("Supprimé.");
+            }
+        }
+
+        // --- ORDERS ---
+        function renderOrders() {
+            const tbody = document.getElementById('orders-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            appData.orders.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-pastel-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-6"><span class="font-bold text-slate-900 block">${o.number}</span><span class="text-[11px] text-slate-400 mt-0.5 block">${o.date}</span></td>
+                    <td class="p-6"><span class="font-bold text-slate-900 block">${o.clientName}</span><span class="text-[11px] text-slate-500 mt-0.5 block">${o.clientPhone}</span></td>
+                    <td class="p-6 text-slate-700">${o.vendeur}</td>
+                    <td class="p-6"><span class="font-bold text-slate-800 block">${o.prodName}</span><span class="text-[11px] text-slate-400 mt-0.5 block">${o.ref} | ${o.color} | ${o.size}</span></td>
+                    <td class="p-6">
+                        <span class="font-bold text-slate-900 block">${o.price} MAD</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5 block">Base: ${o.basePrice} | Remise: ${o.discount || '0'}</span>
+                    </td>
+                    <td class="p-6 text-slate-600">${o.shipDate}</td>
+                    <td class="p-6"><span class="px-4 py-1.5 rounded-full font-bold text-[11px] ${o.delivery === 'Oui' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">${o.delivery}</span></td>
+                    <td class="p-6"><span class="px-4 py-1.5 rounded-full font-bold text-[11px] ${o.money === 'Oui' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">${o.money}</span></td>
+                    <td class="p-6 text-right space-x-1.5">
+                        <button onclick="editOrderById('${o.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <button onclick="cancelOrderById('${o.id}')" class="w-9 h-9 rounded-xl text-amber-500 hover:bg-amber-50 transition inline-flex items-center justify-center cursor-pointer" title="Annuler"><i class="fa-solid fa-ban text-xs"></i></button>
+                        <button onclick="deleteOrderById('${o.id}')" class="w-9 h-9 rounded-xl text-slate-400 hover:text-pastel-700 hover:bg-pastel-50 transition inline-flex items-center justify-center cursor-pointer"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        function filterOrdersTable() {
+            const q = document.getElementById('orderSearchFilter').value.toLowerCase();
+            document.querySelectorAll('#orders-table-body tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
+        }
+
+        function updateOrderDropdowns() {
+            const datalist = document.getElementById('clientPhonesList');
+            if (datalist) {
+                datalist.innerHTML = '';
+                appData.clients.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.phone;
+                    datalist.appendChild(opt);
+                });
+            }
+            const refSelect = document.getElementById('orderRefSelect');
+            if (refSelect) {
+                const cur = refSelect.value;
+                refSelect.innerHTML = '<option value="">-- Choisir Réf --</option>';
+                const refs = new Set();
+                appData.stock.forEach(s => { if (s.ref) refs.add(s.ref); });
+                refs.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; refSelect.appendChild(o); });
+                refSelect.value = cur;
+            }
+            onOrderRefChange();
+        }
+
+        function onOrderRefChange() {
+            const ref = document.getElementById('orderRefSelect').value;
+            const pSel = document.getElementById('orderProdNameSelect');
+            if (!pSel) return;
+            const cur = pSel.value;
+            pSel.innerHTML = '<option value="">-- Choisir Produit --</option>';
+            const names = new Set();
+            appData.stock.forEach(s => { if (s.ref === ref && s.name) names.add(s.name); });
+            names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; pSel.appendChild(o); });
+            pSel.value = cur;
+            onOrderProdNameChange();
+        }
+        function onOrderProdNameChange() {
+            const ref = document.getElementById('orderRefSelect').value;
+            const name = document.getElementById('orderProdNameSelect').value;
+            const sSel = document.getElementById('orderSizeSelect');
+            if (!sSel) return;
+            const cur = sSel.value;
+            sSel.innerHTML = '<option value="">-- Taille --</option>';
+            const sizes = new Set();
+            appData.stock.forEach(s => { if (s.ref === ref && s.name === name && s.size) sizes.add(s.size); });
+            sizes.forEach(sz => { const o = document.createElement('option'); o.value = sz; o.textContent = sz; sSel.appendChild(o); });
+            sSel.value = cur;
+            onOrderSizeChange();
+        }
+        function onOrderSizeChange() {
+            const ref = document.getElementById('orderRefSelect').value;
+            const name = document.getElementById('orderProdNameSelect').value;
+            const size = document.getElementById('orderSizeSelect').value;
+            const cSel = document.getElementById('orderColorSelect');
+            if (!cSel) return;
+            const cur = cSel.value;
+            cSel.innerHTML = '<option value="">-- Couleur --</option>';
+            const colors = new Set();
+            appData.stock.forEach(s => { if (s.ref === ref && s.name === name && s.size === size && s.color) colors.add(s.color); });
+            colors.forEach(cl => { const o = document.createElement('option'); o.value = cl; o.textContent = cl; cSel.appendChild(o); });
+            cSel.value = cur;
+            onOrderColorChange();
+        }
+        function onOrderColorChange() {
+            const ref = document.getElementById('orderRefSelect').value;
+            const name = document.getElementById('orderProdNameSelect').value;
+            const size = document.getElementById('orderSizeSelect').value;
+            const color = document.getElementById('orderColorSelect').value;
+
+            let stockQty = 0;
+            let defaultPrice = 0;
+            appData.stock.forEach(s => {
+                if (s.ref === ref && s.name === name && s.size === size && s.color === color) {
+                    stockQty = s.qty;
+                    defaultPrice = s.price;
+                }
+            });
+            document.getElementById('orderStockAvailable').value = stockQty;
+            document.getElementById('orderBasePrice').value = defaultPrice;
+            calculateFinalPrice();
+        }
+
+        function calculateFinalPrice() {
+            const basePrice = parseFloat(document.getElementById('orderBasePrice').value || '0');
+            const discountInput = document.getElementById('orderDiscount').value.trim();
+            let finalPrice = basePrice;
+
+            if (discountInput) {
+                if (discountInput.endsWith('%')) {
+                    const pct = parseFloat(discountInput.replace('%', '')) || 0;
+                    finalPrice = basePrice - (basePrice * (pct / 100));
+                } else {
+                    const amt = parseFloat(discountInput) || 0;
+                    finalPrice = basePrice - amt;
+                }
+            }
+            if (finalPrice < 0) finalPrice = 0;
+            document.getElementById('orderPrice').value = finalPrice.toFixed(2);
+        }
+
+        function onOrderPhoneInput(phoneVal) {
+            const nameDisplay = document.getElementById('orderClientNameDisplay');
+            const errSpan = document.getElementById('clientPhoneError');
+            let foundName = '', valid = false;
+            appData.clients.forEach(c => {
+                if (c.phone.trim() === phoneVal.trim()) { foundName = c.name; valid = true; }
+            });
+            if (valid) {
+                nameDisplay.value = foundName;
+                errSpan.classList.add('hidden');
+            } else {
+                nameDisplay.value = '';
+                if (phoneVal.trim().length > 0) errSpan.classList.remove('hidden');
+                else errSpan.classList.add('hidden');
+            }
+        }
+
+        function openOrderModal() {
+            updateOrderDropdowns();
+            document.getElementById('editOrderId').value = '';
+            document.getElementById('orderForm').reset();
+            document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('orderModal').classList.remove('hidden');
+            document.getElementById('orderModal').classList.add('flex');
+        }
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('flex');
+            document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        function handleOrderSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editOrderId').value;
+            const dateVal = document.getElementById('orderDate').value;
+            const parts = dateVal.split('-');
+            const date = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateVal;
+            const vendeur = document.getElementById('orderVendeur').value;
+            const phone = document.getElementById('orderClientPhoneInput').value;
+            const clientName = document.getElementById('orderClientNameDisplay').value;
+
+            if (!clientName) {
+                showNotif("Numéro client invalide ou inexistant !");
+                return;
+            }
+
+            const ref = document.getElementById('orderRefSelect').value;
+            const prodName = document.getElementById('orderProdNameSelect').value;
+            const size = document.getElementById('orderSizeSelect').value;
+            const color = document.getElementById('orderColorSelect').value;
+            const basePrice = parseFloat(document.getElementById('orderBasePrice').value || '0');
+            const discount = document.getElementById('orderDiscount').value;
+            const price = parseFloat(document.getElementById('orderPrice').value || '0');
+            const shipDateVal = document.getElementById('orderShipDate').value;
+            const sParts = shipDateVal ? shipDateVal.split('-') : [];
+            const shipDate = sParts.length === 3 ? `${sParts[2]}/${sParts[1]}/${sParts[0]}` : 'Non planifiée';
+            const delivery = document.getElementById('orderDelivery').value;
+            const money = document.getElementById('orderMoneyReceived').value;
+
+            if (!editId) {
+                appData.stock.forEach(s => {
+                    if (s.ref === ref && s.name === prodName && s.size === size && s.color === color) {
+                        if (s.qty > 0) s.qty -= 1;
+                    }
+                });
+                
+                const newOrderNum = '#CMD-' + Math.floor(1000 + Math.random() * 9000);
+                const newOrderId = 'cmd-' + Math.random().toString(36).substring(2,9);
+
+                appData.orders.unshift({
+                    id: newOrderId,
+                    number: newOrderNum,
+                    date, clientName, clientPhone: phone, vendeur, prodName, ref, color, size, basePrice, discount, price: price.toFixed(2), shipDate, delivery, money
+                });
+
+                if (money === 'Oui') {
+                    appData.wallet.unshift({
+                        id: 'w-auto-' + newOrderId,
+                        date,
+                        type: 'Encaissement Vente',
+                        category: 'Encaissement Vente',
+                        entity: clientName,
+                        desc: `Vente ${newOrderNum} (${prodName})`,
+                        amount: price,
+                        isAutoOrder: true,
+                        orderId: newOrderId
+                    });
+                }
+
+                showNotif("Commande enregistrée !");
+            } else {
+                const idx = appData.orders.findIndex(o => o.id === editId);
+                if (idx !== -1) {
+                    const oldOrder = appData.orders[idx];
+                    appData.orders[idx] = { ...oldOrder, date, clientName, clientPhone: phone, vendeur, prodName, ref, color, size, basePrice, discount, price: price.toFixed(2), shipDate, delivery, money };
+
+                    appData.wallet = appData.wallet.filter(w => w.orderId !== editId);
+                    if (money === 'Oui') {
+                        appData.wallet.unshift({
+                            id: 'w-auto-' + editId,
+                            date,
+                            type: 'Encaissement Vente',
+                            category: 'Encaissement Vente',
+                            entity: clientName,
+                            desc: `Vente ${oldOrder.number} (${prodName})`,
+                            amount: price,
+                            isAutoOrder: true,
+                            orderId: editId
+                        });
+                    }
+                }
+                showNotif("Commande mise à jour !");
+            }
+            saveToStorage();
+            closeOrderModal();
+        }
+
+        function editOrderById(id) {
+            updateOrderDropdowns();
+            const o = appData.orders.find(x => x.id === id);
+            if (!o) return;
+            document.getElementById('editOrderId').value = o.id;
+            let d = new Date().toISOString().split('T')[0];
+            if (o.date.includes('/')) { const p = o.date.split('/'); if (p.length === 3) d = `${p[2]}-${p[1]}-${p[0]}`; }
+            document.getElementById('orderDate').value = d;
+            document.getElementById('orderVendeur').value = o.vendeur;
+            document.getElementById('orderClientPhoneInput').value = o.clientPhone;
+            onOrderPhoneInput(o.clientPhone);
+            document.getElementById('orderRefSelect').value = o.ref;
+            onOrderRefChange();
+            document.getElementById('orderProdNameSelect').value = o.prodName;
+            onOrderProdNameChange();
+            document.getElementById('orderSizeSelect').value = o.size;
+            onOrderSizeChange();
+            document.getElementById('orderColorSelect').value = o.color;
+            onOrderColorChange();
+
+            document.getElementById('orderDiscount').value = o.discount || '';
+            document.getElementById('orderPrice').value = o.price;
+            document.getElementById('orderDelivery').value = o.delivery;
+            document.getElementById('orderMoneyReceived').value = o.money;
+
+            document.getElementById('orderModal').classList.remove('hidden');
+            document.getElementById('orderModal').classList.add('flex');
+        }
+
+        function cancelOrderById(id) {
+            if (confirm("Annuler cette commande, restituer le stock et retirer l'impact financier ?")) {
+                const o = appData.orders.find(x => x.id === id);
+                if (o) {
+                    appData.stock.forEach(s => {
+                        if (s.ref === o.ref && s.name === o.prodName && s.size === o.size && s.color === o.color) s.qty += 1;
+                    });
+                }
+                appData.orders = appData.orders.filter(x => x.id !== id);
+                appData.wallet = appData.wallet.filter(w => w.orderId !== id);
+                saveToStorage();
+                showNotif("Commande annulée et impact financier retiré.");
+            }
+        }
+        function deleteOrderById(id) {
+            if (confirm("Supprimer cette commande et son impact financier ?")) {
+                appData.orders = appData.orders.filter(x => x.id !== id);
+                appData.wallet = appData.wallet.filter(w => w.orderId !== id);
+                saveToStorage();
+                showNotif("Supprimée.");
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+
+            const ctxSales = document.getElementById('salesChart').getContext('2d');
+            salesChartInstance = new Chart(ctxSales, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+                    datasets: [
+                        { label: 'CA', data: new Array(12).fill(0), backgroundColor: '#d4836d', borderRadius: 12, barThickness: 18 },
+                        { label: 'Charges', data: new Array(12).fill(0), backgroundColor: '#e2e8f0', borderRadius: 12, barThickness: 18 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            const ctxSources = document.getElementById('sourcesChart').getContext('2d');
+            sourcesChartInstance = new Chart(ctxSources, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Insta', 'FB', 'WhatsApp', 'Direct'],
+                    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#d4836d', '#6366f1', '#10b981', '#f59e0b'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            switchTab('dashboard');
+            syncDataWithCloud();
+        });
+    </script>
+</body>
+</html>
